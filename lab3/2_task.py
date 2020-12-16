@@ -75,7 +75,6 @@ for a in range (45, 135, 10):
     HAIR = [(SIZE/2 + r * nu.cos(a_1), SIZE/2 - r * nu.sin(a_1)),
             (SIZE/2 + r * nu.cos(a_2), SIZE/2 - r * nu.sin(a_2)),
             (SIZE/2 + r_1 * nu.cos(a_3), SIZE/2 - r_1 * nu.sin(a_3))]
-    print (HAIR)
     polygon(screen, yellow, HAIR)
     polygon(screen, black, HAIR, 1)
       
