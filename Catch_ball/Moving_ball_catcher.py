@@ -12,7 +12,6 @@ left = screen.get_rect().left
 top = screen.get_rect().top
 bottom = screen.get_rect().bottom
 center_x = screen.get_rect().centerx
-print(center_x)
 
 font_name = pygame.font.match_font('arial', 1)
 
@@ -84,7 +83,8 @@ def hit_counter(score, event):
         if r >= dist:
             score += 1
             circle(screen, color, (x, y), r + 20, 5) #mark place of success hit
-            A[A.index(set_param)] = update_param()            
+            A[A.index(set_param)] = update_param()
+            
     return score
 
 def draw_text(surf, text, pos_on_sceen, size):
@@ -94,35 +94,54 @@ def draw_text(surf, text, pos_on_sceen, size):
     textpos = text_on_surf.get_rect()
     textpos.centerx = pos_on_sceen
     surf.blit(text_on_surf, textpos)
+
+def check_resaults(score):
+    '''
+    inp = open('winners.txt', 'r')
+    out = open('winners.txt', 'a')
+    CURRENT_RESAULTS = inp.readlines()
     
-pygame.display.update()
-clock = pygame.time.Clock()
-balls_creation()
-score = 0
-finished = False
-pygame.mouse.set_visible(False)
-cursor_img = pygame.image.load('cursor_img.png')
-cursor_img_rect = cursor_img.get_rect()
-
-while not finished:
-    clock.tick(FPS)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            finished = True
-        elif event.type == pygame.MOUSEBUTTONDOWN:            
-            score = hit_counter(score, event.pos)            
-            print(score)
-
-    seconds = 15 - (pygame.time.get_ticks())//1000
-    if seconds == 0:
-        break
-    draw_text(screen, 'Hits - '+str(score)+'  ('+str(seconds)+')', center_x, 25)
-    new_ball()
-    coords_update()
-    cursor_img_rect.center = pygame.mouse.get_pos()
-    screen.blit(cursor_img, cursor_img_rect)
+    print(score, file=out)
+    
+    print(CURRENT_RESAULTS)
+    inp.close()'''
+    CURRENT_RESAULTS = score
+    return CURRENT_RESAULTS
+    
+if __name__ == '__main__':
     pygame.display.update()
-    screen.fill(BLACK)
+    clock = pygame.time.Clock()
+    balls_creation()
+    score = 0
+    finished = False
+    pygame.mouse.set_visible(False)
+    cursor_img = pygame.image.load('cursor_img.png')
+    cursor_img_rect = cursor_img.get_rect()
+
+    while not finished:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                finished = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:            
+                score = hit_counter(score, event.pos)            
+                print(score)
+
+        seconds = 15 - (pygame.time.get_ticks())//1000
+        if seconds > 0:           
+            draw_text(screen,
+                      'Hits - '+str(score)+'  ('+str(seconds)+')',
+                      center_x, 25)
+            new_ball()
+            coords_update()
+            cursor_img_rect.center = pygame.mouse.get_pos()
+            screen.blit(cursor_img, cursor_img_rect)
+        else:
+            pygame.mouse.set_visible(True)
+            draw_text(screen, str(check_resaults(score)), center_x, 50)
+        pygame.display.update()
+        screen.fill(BLACK)
 
 
 pygame.quit()
+
