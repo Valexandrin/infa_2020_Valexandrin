@@ -5,13 +5,18 @@ from random import randint
 pygame.init()
 
 FPS = 18
+SIZE_X = 1200
+SIZE_Y = 900
+game_speed = 10
+game_time = 5
 
-screen = pygame.display.set_mode((1200, 900))
+screen = pygame.display.set_mode((SIZE_X, SIZE_Y))
 right = screen.get_rect().right
 left = screen.get_rect().left
 top = screen.get_rect().top
 bottom = screen.get_rect().bottom
 center_x = screen.get_rect().centerx
+center = screen.get_rect().center
 
 font_name = pygame.font.match_font('arial', 1)
 
@@ -47,12 +52,12 @@ def update_param():
 def update_step(step):
     ''' Function updates ball's velocity '''
     if step == 0:
-        step = randint(-30, 30)
+        step = randint(-game_speed, game_speed)
 
     if step < 0:
-        step = randint(5, 30)
+        step = randint(game_speed//2, game_speed)
     else:
-        step = randint(-30, -5)
+        step = randint(-game_speed, -game_speed//2)
     return step
      
 def new_ball():
@@ -95,18 +100,20 @@ def draw_text(surf, text, pos_on_sceen, size):
     textpos.centerx = pos_on_sceen
     surf.blit(text_on_surf, textpos)
 
-def check_resaults(score):
-    '''
-    inp = open('winners.txt', 'r')
-    out = open('winners.txt', 'a')
-    CURRENT_RESAULTS = inp.readlines()
-    
-    print(score, file=out)
-    
-    print(CURRENT_RESAULTS)
-    inp.close()'''
-    CURRENT_RESAULTS = score
-    return CURRENT_RESAULTS
+def update_winners(score, input_box_text):
+    WIN = []    
+    with open('winners.txt', 'r') as win:
+        WIN = win.readlines()                
+        for player in WIN:
+            points = int(player[0:player.rindex(',')])            
+            if points < score:
+                WIN[WIN.index(player)] = str(score)+', '+str(input_box_text)+'\n'
+                break            
+        WIN.append(str(score)+', '+input_box_text)
+    with open('winners.txt', 'w') as win:
+        for player in WIN:
+            win.write(player)
+    return WIN
     
 if __name__ == '__main__':
     pygame.display.update()
@@ -117,17 +124,29 @@ if __name__ == '__main__':
     pygame.mouse.set_visible(False)
     cursor_img = pygame.image.load('cursor_img.png')
     cursor_img_rect = cursor_img.get_rect()
+    input_box = pygame.Rect(center, (100, 32))
+    input_box_active = False
+    input_box_text = 'Your name'
+    winner_input = False
 
     while not finished:
         clock.tick(FPS)
+        seconds = game_time - (pygame.time.get_ticks())//1000
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 finished = True
             elif event.type == pygame.MOUSEBUTTONDOWN:            
-                score = hit_counter(score, event.pos)            
-                print(score)
-
-        seconds = 15 - (pygame.time.get_ticks())//1000
+                score = hit_counter(score, event.pos)                
+            elif event.type == pygame.KEYDOWN:
+                if input_box_active:
+                    if event.key == pygame.K_RETURN:
+                        winner_input = True
+                        update_winners(score, input_box_text)
+                    elif event.key == pygame.K_BACKSPACE:
+                        input_box_text = input_box_text[:-1]
+                    else:
+                        input_box_text += event.unicode              
+        
         if seconds > 0:           
             draw_text(screen,
                       'Hits - '+str(score)+'  ('+str(seconds)+')',
@@ -135,13 +154,21 @@ if __name__ == '__main__':
             new_ball()
             coords_update()
             cursor_img_rect.center = pygame.mouse.get_pos()
-            screen.blit(cursor_img, cursor_img_rect)
-        else:
-            pygame.mouse.set_visible(True)
-            draw_text(screen, str(check_resaults(score)), center_x, 50)
+            screen.blit(cursor_img, cursor_img_rect)            
+        elif not winner_input and score > 0:
+            A = []
+            pygame.mouse.set_visible(True)            
+            input_box_active = True
+            font = pygame.font.Font(font_name, 20)
+            txt_surface = font.render(input_box_text, True, WHITE)
+            width = max(200, txt_surface.get_width()+10)
+            input_box.w = width
+            screen.blit(txt_surface, (input_box.x+5, input_box.y+5))            
+            rect(screen, BLUE, input_box, 2)            
+        else:                        
+            with open('winners.txt', 'r') as win:
+                draw_text(screen, win.read(), center_x, 50)
         pygame.display.update()
         screen.fill(BLACK)
 
-
 pygame.quit()
-
