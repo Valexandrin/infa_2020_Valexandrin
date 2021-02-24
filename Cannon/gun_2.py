@@ -57,15 +57,14 @@ class ball():
         
         if self.x + self.r > 800:
             self.vx *= -1
-        if self.y + self.r > 500:       
+        if self.y + self.r > 550:       
             self.vy *= -0.65
         self.x += self.vx
         self.y -= self.vy*self.dt - self.g*self.dt**2/2        
         self.vy -= self.dt*self.g
         self.vy *= 0.95
         self.vx *= 0.94
-        self.dt *= 0.99
-        
+        self.dt *= 0.99        
         self.set_coords()
                     
     def hide(self):
@@ -146,7 +145,7 @@ class target():
         self.points = 0
         self.live = 1
         self.id = canv.create_oval(0,0,0,0)
-        self.id_points = canv.create_text(30,30,text = self.points,font = '28')
+        #self.id_points = canv.create_text(30,30,text = self.points,font = '28')
         
     def new_target(self):
         """ Инициализация новой цели. """
@@ -159,43 +158,48 @@ class target():
 
     def hit(self, points=1):
         """Попадание шарика в цель."""
-        canv.coords(self.id, -10, -10, -10, -10)
-        self.points += points
-        canv.itemconfig(self.id_points, text=self.points)        
+        canv.coords(self.id, -10, -10, -10, -10)       
+        
 
-
-t1 = target()
+targets = []
 screen1 = canv.create_text(400, 300, text='', font='28')
 g1 = gun()
 bullet = 0
 balls = []
-
+points = 0
+counter = canv.create_text(30,30,text = points,font = '28')
 
 def new_game(event=''):
-    global gun, t1, screen1, balls, bullet
-    t1.new_target()
-    print(t1)
+    global gun, targets, screen1, balls, bullet, points 
+    for t in range(3):
+        t = target()
+        t.new_target()
+        targets += [t]
+    targets_live = 1    
     bullet = 0
     balls = []
     canv.bind('<Button-1>', g1.fire2_start)
     canv.bind('<ButtonRelease-1>', g1.fire2_end)
     canv.bind('<Motion>', g1.targetting)
     canv.itemconfig(screen1, text='')    
-    t1.live = 1
-    while t1.live or balls:        
-        for b in balls:            
+    while targets or balls:        
+        for b in balls:
             b.move()
             if b.hide():
-                b.remove(b)            
-            if b.hittest(t1) and t1.live:                
-                t1.live = 0
-                t1.hit()
+                balls.remove(b)
+            for t in targets:                
+                if b.hittest(t):
+                    t.hit()
+                    points += 1
+                    canv.itemconfig(counter, text=points)
+                    targets.remove(t)                    
+            if not targets and targets_live:               
+                targets_live = 0                
                 canv.bind('<Button-1>', '')
                 canv.bind('<ButtonRelease-1>', '')
-                canv.itemconfig(screen1, text='Вы уничтожили цель за ' +
+                canv.itemconfig(screen1, text='Вы уничтожили цели за ' +
                                 str(bullet) + ' выстрелов')                                
-                root.after(3500, new_game)
-        
+                root.after(3500, new_game)        
         canv.update()
         time.sleep(0.03)
         g1.targetting()
